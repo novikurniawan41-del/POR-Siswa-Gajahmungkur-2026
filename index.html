@@ -81,6 +81,7 @@ const SPORTS = [
   {key:"Tonnis", type:"match", color:"#8aa60f"},
   {key:"Futsal", type:"match", color:"#1f5fbf"},
   {key:"Atletik",type:"track", color:"#d9482b"},
+  {key:"Daftar Juara",type:"juara", color:"#a67c00"},
   {key:"Juara Umum",type:"overall", color:"#b98a00"},
   {key:"Sekolah",type:"sekolah", color:"#0f7b8a"},
   {key:"Atlet",type:"atlet", color:"#6b4fbb"}
@@ -215,6 +216,19 @@ function champs(cabang,q){
   return `<h2>Hasil juara</h2><div class="ch">`+Object.keys(g).sort().map(k=>`<div class="cc"><h3>${esc(k)}</h3>`+
     g[k].sort((a,b)=>a.p-b.p).map(r=>`<div class="cr"><span class="md ${["g","s","z"][r.p-1]}">Juara ${r.p}</span><b>${esc(r.sekolah)}</b></div>`).join("")+`</div>`).join("")+`</div>`;
 }
+function juaraList(q){
+  const sec=[];
+  const cards=g=>`<div class="ch">`+Object.keys(g).sort().map(k=>`<div class="cc"><h3>${esc(k)}</h3>`+
+    g[k].sort((a,b)=>a.p-b.p).map(r=>`<div class="cr"><span class="md ${["g","s","z"][r.p-1]}">Juara ${r.p}</span><b>${esc(r.nama?r.nama+" ("+r.sekolah+")":r.sekolah)}</b>${r.hasil?` <span>${esc(r.hasil)}</span>`:""}</div>`).join("")+`</div>`).join("")+`</div>`;
+  const ok=r=>!q||Object.values(r).join(" ").toLowerCase().includes(q);
+  ["Tonnis","Futsal","Atletik"].forEach(c=>{
+    const g={};
+    if(c==="Atletik")(store.Atletik||[]).forEach(r=>{const p=+r.peringkat;if(p>=1&&p<=3&&r.sekolah&&ok(r))(g[((r.nomor||"")+" "+(r.kategori||"")).trim()||"Atletik"]??=[]).push({...r,p})});
+    else jr().filter(r=>r.cabang.toLowerCase()===c.toLowerCase()&&ok(r)).forEach(r=>{(g[r.kategori||"Umum"]??=[]).push(r)});
+    if(Object.keys(g).length)sec.push(`<h2>${c}</h2>`+cards(g));
+  });
+  return sec.join("");
+}
 function overall(q){
   const m={};
   const add=(s,i)=>{if(s)(m[s]??={g:0,s:0,z:0})[["g","s","z"][i]]++};
@@ -236,6 +250,7 @@ function render(){
   const all=store[cur]||[];
   const rows=q?all.filter(r=>Object.values(r).join(" ").toLowerCase().includes(q)):all;
   $("out").innerHTML=sp.type==="overall"?(overall(q)||`<div class="empty">Belum ada juara yang tercatat. Cek lagi sebentar.</div>`)
+    :sp.type==="juara"?(juaraList(q)||`<div class="empty">Belum ada juara yang tercatat. Cek lagi sebentar.</div>`)
     :!all.length?`<div class="empty">Belum ada data untuk ${esc(cur)}. Cek lagi sebentar.</div>`
     :!rows.length?`<div class="empty">Tidak ada hasil untuk "${esc(q)}".</div>`
     :sp.type==="match"?champs(cur,q)+matches(rows):sp.type==="sekolah"?schools(rows):sp.type==="atlet"?athletes(rows):track(rows,all);

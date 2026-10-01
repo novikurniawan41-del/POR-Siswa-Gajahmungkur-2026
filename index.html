@@ -17,8 +17,8 @@ h1{font:700 clamp(30px,7vw,52px)/1 "Barlow Condensed",Impact,sans-serif;margin:0
 header p{margin:0;color:#a9b8c8}
 .brand{display:flex;gap:16px;align-items:center;margin-bottom:14px}
 .logo{width:clamp(84px,22vw,140px);height:auto;flex:none}
-nav{display:flex;gap:4px}
-nav button{flex:1;border:0;background:#1b2a3a;color:#c5d1de;font:600 17px "Barlow Condensed",sans-serif;padding:12px 4px;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:5px solid transparent}
+nav{display:flex;gap:4px;overflow-x:auto}
+nav button{flex:1 0 auto;white-space:nowrap;border:0;background:#1b2a3a;color:#c5d1de;font:600 17px "Barlow Condensed",sans-serif;padding:12px 14px;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:5px solid transparent}
 nav button[aria-selected=true]{background:var(--bg);color:var(--tx);border-bottom-color:var(--c)}
 nav button:focus-visible,input:focus-visible{outline:3px solid var(--c);outline-offset:2px}
 main{padding:16px}
@@ -81,37 +81,48 @@ const SPORTS = [
   {key:"Tonnis", type:"match", color:"#8aa60f"},
   {key:"Futsal", type:"match", color:"#1f5fbf"},
   {key:"Atletik",type:"track", color:"#d9482b"},
-  {key:"Juara Umum",type:"overall", color:"#b98a00"}
+  {key:"Juara Umum",type:"overall", color:"#b98a00"},
+  {key:"Sekolah",type:"sekolah", color:"#0f7b8a"},
+  {key:"Atlet",type:"atlet", color:"#6b4fbb"}
 ];
-// tab data yang dibaca dari spreadsheet ("Juara" = hasil juara Tonnis & Futsal)
-const DATA_TABS = ["Tonnis","Futsal","Atletik","Juara"];
+// tab data yang dibaca dari spreadsheet ("Juara" = hasil juara Tonnis & Futsal; "Sekolah" = daftar SD peserta; "Atlet" = daftar atlet Tonnis & Atletik)
+const DATA_TABS = ["Tonnis","Futsal","Atletik","Juara","Sekolah","Atlet"];
 
 /* ===== DATA CONTOH (dipakai jika SHEET_ID kosong) ===== */
 const DEMO = {
 Tonnis:[
- {tanggal:"2026-10-05",jam:"08:00",kategori:"Putra",babak:"Semifinal","tim a":"SMPN 1",  "skor a":"2","skor b":"1","tim b":"SMPN 5",status:"Selesai",lokasi:"Lapangan Tenis A"},
- {tanggal:"2026-10-05",jam:"09:30",kategori:"Putri",babak:"Semifinal","tim a":"SMPN 3",  "skor a":"1","skor b":"1","tim b":"SMPN 9",status:"Berlangsung",lokasi:"Lapangan Tenis A"},
- {tanggal:"2026-10-06",jam:"09:00",kategori:"Putra",babak:"Final","tim a":"SMPN 1","skor a":"","skor b":"","tim b":"SMPN 2",status:"Terjadwal",lokasi:"Lapangan Tenis A"}],
+ {tanggal:"2026-10-05",jam:"08:00",kategori:"Putra",babak:"Semifinal","tim a":"SDN 1",  "skor a":"2","skor b":"1","tim b":"SDN 5",status:"Selesai",lokasi:"Lapangan Tenis A"},
+ {tanggal:"2026-10-05",jam:"09:30",kategori:"Putri",babak:"Semifinal","tim a":"SDN 3",  "skor a":"1","skor b":"1","tim b":"SDN 9",status:"Berlangsung",lokasi:"Lapangan Tenis A"},
+ {tanggal:"2026-10-06",jam:"09:00",kategori:"Putra",babak:"Final","tim a":"SDN 1","skor a":"","skor b":"","tim b":"SDN 2",status:"Terjadwal",lokasi:"Lapangan Tenis A"}],
 Futsal:[
- {tanggal:"2026-10-05",jam:"13:00",kategori:"Putra",babak:"Grup A","tim a":"SMPN 4","skor a":"3","skor b":"2","tim b":"SMPN 7",status:"Selesai",lokasi:"GOR Gajahmungkur"},
- {tanggal:"2026-10-05",jam:"14:00",kategori:"Putra",babak:"Grup A","tim a":"SMPN 2","skor a":"1","skor b":"0","tim b":"SMPN 6",status:"Berlangsung",lokasi:"GOR Gajahmungkur"},
- {tanggal:"2026-10-06",jam:"13:00",kategori:"Putri",babak:"Grup B","tim a":"SMPN 8","skor a":"","skor b":"","tim b":"SMPN 1",status:"Terjadwal",lokasi:"GOR Gajahmungkur"}],
+ {tanggal:"2026-10-05",jam:"13:00",kategori:"Putra",babak:"Grup A","tim a":"SDN 4","skor a":"3","skor b":"2","tim b":"SDN 7",status:"Selesai",lokasi:"GOR Gajahmungkur"},
+ {tanggal:"2026-10-05",jam:"14:00",kategori:"Putra",babak:"Grup A","tim a":"SDN 2","skor a":"1","skor b":"0","tim b":"SDN 6",status:"Berlangsung",lokasi:"GOR Gajahmungkur"},
+ {tanggal:"2026-10-06",jam:"13:00",kategori:"Putri",babak:"Grup B","tim a":"SDN 8","skor a":"","skor b":"","tim b":"SDN 1",status:"Terjadwal",lokasi:"GOR Gajahmungkur"}],
 Atletik:[
- {nomor:"Lari 100 m",kategori:"Putra",peringkat:"1",nama:"Raka Pratama",sekolah:"SMPN 2",hasil:"12,4 detik"},
- {nomor:"Lari 100 m",kategori:"Putra",peringkat:"2",nama:"Dimas Aji",sekolah:"SMPN 5",hasil:"12,7 detik"},
- {nomor:"Lari 100 m",kategori:"Putra",peringkat:"3",nama:"Bayu Saputra",sekolah:"SMPN 1",hasil:"12,9 detik"},
- {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"1",nama:"Sinta Larasati",sekolah:"SMPN 1",hasil:"4,52 m"},
- {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"2",nama:"Nadia Putri",sekolah:"SMPN 2",hasil:"4,40 m"},
- {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"3",nama:"Wulan Sari",sekolah:"SMPN 9",hasil:"4,21 m"}],
+ {nomor:"Lari 100 m",kategori:"Putra",peringkat:"1",nama:"Raka Pratama",sekolah:"SDN 2",hasil:"12,4 detik"},
+ {nomor:"Lari 100 m",kategori:"Putra",peringkat:"2",nama:"Dimas Aji",sekolah:"SDN 5",hasil:"12,7 detik"},
+ {nomor:"Lari 100 m",kategori:"Putra",peringkat:"3",nama:"Bayu Saputra",sekolah:"SDN 1",hasil:"12,9 detik"},
+ {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"1",nama:"Sinta Larasati",sekolah:"SDN 1",hasil:"4,52 m"},
+ {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"2",nama:"Nadia Putri",sekolah:"SDN 2",hasil:"4,40 m"},
+ {nomor:"Lompat Jauh",kategori:"Putri",peringkat:"3",nama:"Wulan Sari",sekolah:"SDN 9",hasil:"4,21 m"}],
 Juara:[
- {cabang:"Tonnis",kategori:"Putra",juara:"1",sekolah:"SMPN 1"},
- {cabang:"Tonnis",kategori:"Putra",juara:"2",sekolah:"SMPN 2"},
- {cabang:"Tonnis",kategori:"Putra",juara:"3",sekolah:"SMPN 5"},
- {cabang:"Tonnis",kategori:"Putri",juara:"1",sekolah:"SMPN 3"},
- {cabang:"Tonnis",kategori:"Putri",juara:"2",sekolah:"SMPN 9"},
- {cabang:"Futsal",kategori:"Putra",juara:"1",sekolah:"SMPN 2"},
- {cabang:"Futsal",kategori:"Putra",juara:"2",sekolah:"SMPN 4"},
- {cabang:"Futsal",kategori:"Putra",juara:"3",sekolah:"SMPN 7"}]
+ {cabang:"Tonnis",kategori:"Putra",juara:"1",sekolah:"SDN 1"},
+ {cabang:"Tonnis",kategori:"Putra",juara:"2",sekolah:"SDN 2"},
+ {cabang:"Tonnis",kategori:"Putra",juara:"3",sekolah:"SDN 5"},
+ {cabang:"Tonnis",kategori:"Putri",juara:"1",sekolah:"SDN 3"},
+ {cabang:"Tonnis",kategori:"Putri",juara:"2",sekolah:"SDN 9"},
+ {cabang:"Futsal",kategori:"Putra",juara:"1",sekolah:"SDN 2"},
+ {cabang:"Futsal",kategori:"Putra",juara:"2",sekolah:"SDN 4"},
+ {cabang:"Futsal",kategori:"Putra",juara:"3",sekolah:"SDN 7"}],
+Sekolah:[
+ {"nama sekolah":"SDN 1 Gajahmungkur",alamat:"Jl. Contoh No. 1",cabang:"Tonnis, Futsal, Atletik"},
+ {"nama sekolah":"SDN 2 Gajahmungkur",alamat:"Jl. Contoh No. 2",cabang:"Futsal, Atletik"},
+ {"nama sekolah":"SDN 10 Gajahmungkur",alamat:"Jl. Contoh No. 10",cabang:"Tonnis"}],
+Atlet:[
+ {nama:"Raka Pratama",sekolah:"SDN 2",cabang:"Atletik",nomor:"Lari 100 m",kategori:"Putra"},
+ {nama:"Sinta Larasati",sekolah:"SDN 1",cabang:"Atletik",nomor:"Lompat Jauh",kategori:"Putri"},
+ {nama:"Dimas Aji",sekolah:"SDN 5",cabang:"Tonnis",nomor:"Tunggal",kategori:"Putra"},
+ {nama:"Nadia Putri",sekolah:"SDN 3",cabang:"Tonnis",nomor:"Tunggal",kategori:"Putri"}]
 };
 
 /* ===== KODE ===== */
@@ -144,8 +155,11 @@ async function load(){
         const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(k)}`;
         const r=await fetch(u,{cache:"no-store"});
         if(!r.ok)throw new Error(r.status);
-        return [k,toObjs(await r.text())];
-      }catch(e){if(k==="Juara")return [k,[]];throw e}
+        let o=toObjs(await r.text());
+        if(k==="Sekolah")o=o.filter(x=>x["nama sekolah"]);
+        if(k==="Atlet")o=o.filter(x=>x.nama&&x.cabang);
+        return [k,o];
+      }catch(e){if(["Juara","Sekolah","Atlet"].includes(k))return [k,[]];throw e}
     }));
     store=Object.fromEntries(res);online=true;updated=new Date();
   }catch(e){online=false}
@@ -181,6 +195,17 @@ function track(rows,all){
   return medals(all)+Object.keys(g).map(k=>`<h2>${esc(k.trim())}</h2><div class="tw"><table><tr><th>#</th><th>Nama</th><th>Sekolah</th><th>Hasil</th></tr>`+
     g[k].sort((a,b)=>(+a.peringkat||99)-(+b.peringkat||99)).map(r=>`<tr><td class="n">${esc(r.peringkat)}</td><td>${esc(r.nama)}</td><td>${esc(r.sekolah)}</td><td>${esc(r.hasil)}</td></tr>`).join("")+`</table></div>`).join("");
 }
+function schools(rows){
+  const hasA=rows.some(r=>r.alamat);
+  return `<h2>${rows.length} sekolah peserta</h2><div class="tw"><table><tr><th>#</th><th>Nama sekolah</th>${hasA?"<th>Alamat</th>":""}<th>Cabang</th></tr>`+
+    rows.slice().sort((a,b)=>a["nama sekolah"].localeCompare(b["nama sekolah"],"id",{numeric:true})).map((r,i)=>`<tr><td class="n">${i+1}</td><td>${esc(r["nama sekolah"])}</td>${hasA?`<td>${esc(r.alamat)}</td>`:""}<td>${esc(r.cabang)}</td></tr>`).join("")+`</table></div>`;
+}
+function athletes(rows){
+  const g={};
+  rows.forEach(r=>{(g[r.cabang]??=[]).push(r)});
+  return Object.keys(g).sort().map(k=>`<h2>${esc(k)} (${g[k].length} atlet)</h2><div class="tw"><table><tr><th>#</th><th>Nama</th><th>Sekolah</th><th>Nomor</th><th>Kategori</th></tr>`+
+    g[k].sort((a,b)=>a.nama.localeCompare(b.nama,"id")).map((r,i)=>`<tr><td class="n">${i+1}</td><td>${esc(r.nama)}</td><td>${esc(r.sekolah)}</td><td>${esc(r.nomor)}</td><td>${esc(r.kategori)}</td></tr>`).join("")+`</table></div>`).join("");
+}
 const jr=()=>(store.Juara||[]).filter(r=>r.cabang&&r.sekolah&&/[1-3]/.test(r.juara)).map(r=>({...r,p:+String(r.juara).match(/[1-3]/)[0]}));
 function champs(cabang,q){
   let l=jr().filter(r=>r.cabang.toLowerCase()===cabang.toLowerCase());
@@ -211,9 +236,9 @@ function render(){
   const all=store[cur]||[];
   const rows=q?all.filter(r=>Object.values(r).join(" ").toLowerCase().includes(q)):all;
   $("out").innerHTML=sp.type==="overall"?(overall(q)||`<div class="empty">Belum ada juara yang tercatat. Cek lagi sebentar.</div>`)
-    :!all.length?`<div class="empty">Belum ada hasil untuk ${esc(cur)}. Cek lagi sebentar.</div>`
+    :!all.length?`<div class="empty">Belum ada data untuk ${esc(cur)}. Cek lagi sebentar.</div>`
     :!rows.length?`<div class="empty">Tidak ada hasil untuk "${esc(q)}".</div>`
-    :sp.type==="match"?champs(cur,q)+matches(rows):track(rows,all);
+    :sp.type==="match"?champs(cur,q)+matches(rows):sp.type==="sekolah"?schools(rows):sp.type==="atlet"?athletes(rows):track(rows,all);
   $("sync").innerHTML=`<span class="dot ${online?"":"off"}"></span>`+(online
     ?`Diperbarui ${updated.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}`
     :"Tidak bisa memuat data terbaru, mencoba lagi otomatis");
